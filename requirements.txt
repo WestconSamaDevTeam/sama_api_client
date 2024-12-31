@@ -1,0 +1,26 @@
+# Library to build the Python project using pyproject.toml:
+build==1.2.2.post1
+
+# Basic network communication library:
+requests==2.32.3
+types-requests==2.32.0.20241016
+
+# Libraries for retrieving authentication data from the keyring:
+keyring==25.6.0
+
+# Keyring backends for storing authentication data:
+keyrings.alt==5.0.2
+keyrings.cryptfile==1.3.9
+gsheet-keyring==1.0.1
+bitwarden-keyring==0.3.1
+onepassword-keyring==0.1.1
+#keyrings.osx_keychain_keys # This library is not working on Linux or windows, uncomment if you are on a MAC.
+
+# Library for reading the .env file:
+python-dotenv==1.0.1
+
+# Library for creating rich text output:
+rich==13.9.4
+
+# Library for creating JSON classes:
+pydantic==2.10.4

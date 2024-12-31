@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools >= 65.6.3", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sama_api_client"
+dynamic = ["version"]
+authors = [
+    { name="Marco Caspers", email="SamaDevTeam@westcon.com" },
+]
+description = "Basic core of a REST API client"
+requires-python = ">=3.7"
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[dependencies]
+requests = ">=2.32.3"
+types-requests = "=2.32.0.20241016"
+keyring = "=25.6.0"
+keyrings.alt = "=5.0.2"
+keyrings.cryptfile = "=1.3.9"
+gsheet-keyring = "=1.0.1"
+bitwarden-keyring = "=0.3.1"
+onepassword-keyring = "=0.1.1"
+python-dotenv = "=1.0.1"
+rich = "=13.9.4"
+pydantic = "=2.10.4"
+
+[tool.setuptools.dynamic]
+version = {attr = "sama_api_client.__about__.__VERSION__"}
+
+[tool.setuptools.package-data]
+"pkgname" = ["py.typed"]
