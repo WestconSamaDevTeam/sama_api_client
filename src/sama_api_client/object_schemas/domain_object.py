@@ -120,6 +120,11 @@ from typing import Optional
 # - extensions: dictionary
 # - resultType: string
 # - result: list of domain objects
+#
+# Also, it is known that in some cases the response object will contain a header called ETag, which is a string.
+# This header is added to the domain object as an attribute.
+# We need to keep this in mind that the domain object has this, and process it accordingly in the code.
+#
 
 
 class DomainObject(BaseModel):
@@ -134,3 +139,4 @@ class DomainObject(BaseModel):
     extensions: Optional[dict] = None
     resultType: Optional[str] = None
     result: Optional[list["DomainObject"]] = None
+    ETag: Optional[str] = None

@@ -1,5 +1,4 @@
-all: clean build install
-
+.PHONY: clean build install setup_env requirements init_env core_demo client_demo all
 clean:
 	@rm -rf dist
 
@@ -22,3 +21,5 @@ core_demo:
 
 client_demo:
 	@cd tests && python3 client_demo.py
+
+all: clean build install

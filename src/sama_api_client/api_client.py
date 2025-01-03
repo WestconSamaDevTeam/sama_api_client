@@ -54,11 +54,29 @@ class SamaApiClient(SamaApiClientCore):
         data: Optional[str] = None,
         url_data: Optional[str] = None,
         params: Optional[dict] = None,
+        debug: bool = False,
+        log_access: bool = False,
     ) -> Optional[DomainObject]:
+        """API request to a specified endpoint, returning a domain object.
+
+        Args:
+            endpoint_name (str): The name of the endpoint to request.
+            no_default_headers (bool, optional): Indicate if the default headers should be used or not. Defaults to False.
+            data (Optional[str], optional): The data (body) for the request. Defaults to None.
+            url_data (Optional[str], optional): URL based data. Defaults to None.
+            params (Optional[dict], optional): URL Parameters. Defaults to None.
+            debug (bool, optional): Enable debug printing of information. Defaults to False.
+            log_access (bool, optional): Enable access logging. Defaults to False because it is very cyatty.
+
+        Returns:
+            Optional[DomainObject]: _description_
+        """
         resp: Optional[Response] = self.api_request(
-            endpoint_name, no_default_headers, data, url_data, params
+            endpoint_name, no_default_headers, data, url_data, params, debug, log_access
         )
         if resp is None:
             return None
         result: DomainObject = DomainObject(**resp.json())
+        if "ETag" in resp.headers:
+            result.ETag = resp.headers["ETag"]
         return result

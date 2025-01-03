@@ -416,6 +416,8 @@ class SamaApiClientCore:
         data: Optional[str] = None,
         url_data: Optional[str] = None,
         params: Optional[dict] = None,
+        log_access: bool = False,
+        debug: bool = False,
     ) -> Optional[Response]:
         """
 
@@ -426,6 +428,8 @@ class SamaApiClientCore:
         :param data: The optional data for the body of the request.
         :param url_data: The optional URL data.
         :param params: The optional parameters.
+        :param log_access: True if the access should be logged, False otherwise. Default is False.
+        :param debug: True if the request and response should be printed, False otherwise. Default is False.
 
         :return: The response, or None if the response is not successful.
 
@@ -450,13 +454,45 @@ class SamaApiClientCore:
 
         # Make the API call
         try:
+            if debug is True:
+                print(f"API Request: {method} {api_url}")
+                ho = headers.copy()
+                ho["Authorization"] = "Bearer <:This is was redacted by my l33t :):>"
+                print(f"Headers: {ho}")
+                print(f"Data: {data}")
+                print(f"URL Data: {url_data}")
+                print(f"Params: {params}")
+                print()
+            if log_access:
+                self.logger.info(f"API Request: {method} {api_url}")
+                ho = headers.copy()
+                ho["Authorization"] = "Bearer <:This is was redacted by my l33t :):>"
+                self.logger.info(f"Headers: {ho}")
+                self.logger.info(f"Data: {data}")
+                self.logger.info(f"URL Data: {url_data}")
+                self.logger.info(f"Params: {params}")
             response: Response = self.session.request(
                 method, api_url, headers=headers, data=data
             )
             response.raise_for_status()
+            if debug is True:
+                print(f"API Response: {response.status_code}")
+                print(f"Response Headers: {response.headers}")
+                print(f"Response Data: {response.text}")
+                print()
+            if log_access:
+                self.logger.info(f"API Response: {response.status_code}")
+                self.logger.info(f"Response Headers: {response.headers}")
+                self.logger.info(f"Response Data: {response.text}")
             return response
         except HTTPError as e:
-            self.logger.error(f"HTTPError: {e}")
+            ho = headers.copy()
+            ho["Authorization"] = "Bearer <:This is was redacted by my l33t :):>"
+            msg = f"HTTP Error: {e}\nRequest: {method} {api_url}\nHeaders: {ho}\nData: {data}\nURL Data: {url_data}\nParams: {params}\nReason: {response.reason}"
+            self.logger.error(msg)
+            if debug is True:
+                print(msg)
+                print()
             return None
         except Exception as e:
             self.logger.error(f"Exception: {e}")
