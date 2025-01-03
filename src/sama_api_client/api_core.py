@@ -59,6 +59,8 @@ from urllib.parse import quote
 
 from sama_api_client.api_endpoint import APIEndpoint
 from sama_api_client.__about__ import __VERSION__
+from sama_api_client.format_http_error import print_http_error
+from sama_api_client.format_http_error import format_http_error_for_logging
 
 # Constants
 
@@ -415,7 +417,8 @@ class SamaApiClientCore:
         no_default_headers: bool = False,
         data: Optional[str] = None,
         url_data: Optional[str] = None,
-        params: Optional[dict] = None,
+        params: Optional[dict[str, str]] = None,
+        headers: Optional[dict[str, str]] = None,
         log_access: bool = False,
         debug: bool = False,
     ) -> Optional[Response]:
@@ -446,17 +449,21 @@ class SamaApiClientCore:
 
         method: str = endpoint.method
 
-        headers: dict = self.headers  # Set the headers
+        out_headers: dict[str, str] = self.headers  # Set the default headers
         if no_default_headers:
-            headers = {}
+            out_headers = {}
+        # override default headers with endpoint headers
         if endpoint.headers is not None:
-            headers.update(endpoint.headers)
+            out_headers.update(endpoint.headers)
+        # override default headers with headers that are provided in the call
+        if headers is not None:
+            out_headers.update(headers)
 
         # Make the API call
         try:
             if debug is True:
                 print(f"API Request: {method} {api_url}")
-                ho = headers.copy()
+                ho = out_headers.copy()
                 ho["Authorization"] = "Bearer <:This is was redacted by my l33t :):>"
                 print(f"Headers: {ho}")
                 print(f"Data: {data}")
@@ -465,14 +472,14 @@ class SamaApiClientCore:
                 print()
             if log_access:
                 self.logger.info(f"API Request: {method} {api_url}")
-                ho = headers.copy()
+                ho = out_headers.copy()
                 ho["Authorization"] = "Bearer <:This is was redacted by my l33t :):>"
                 self.logger.info(f"Headers: {ho}")
                 self.logger.info(f"Data: {data}")
                 self.logger.info(f"URL Data: {url_data}")
                 self.logger.info(f"Params: {params}")
             response: Response = self.session.request(
-                method, api_url, headers=headers, data=data
+                method, api_url, headers=out_headers, data=data
             )
             response.raise_for_status()
             if debug is True:
@@ -486,13 +493,9 @@ class SamaApiClientCore:
                 self.logger.info(f"Response Data: {response.text}")
             return response
         except HTTPError as e:
-            ho = headers.copy()
-            ho["Authorization"] = "Bearer <:This is was redacted by my l33t :):>"
-            msg = f"HTTP Error: {e}\nRequest: {method} {api_url}\nHeaders: {ho}\nData: {data}\nURL Data: {url_data}\nParams: {params}\nReason: {response.reason}\nDetails: {response.text}"
+            print_http_error(e)
+            msg = format_http_error_for_logging(e)
             self.logger.error(msg)
-            if debug is True:
-                print(msg)
-                print()
             return None
         except Exception as e:
             self.logger.error(f"Exception: {e}")

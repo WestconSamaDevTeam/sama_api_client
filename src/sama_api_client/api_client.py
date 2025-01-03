@@ -53,7 +53,9 @@ class SamaApiClient(SamaApiClientCore):
         no_default_headers: bool = False,
         data: Optional[str] = None,
         url_data: Optional[str] = None,
-        params: Optional[dict] = None,
+        params: Optional[dict[str, str]] = None,
+        headers: Optional[dict[str, str]] = None,
+        etag: Optional[str] = None,
         debug: bool = False,
         log_access: bool = False,
     ) -> Optional[DomainObject]:
@@ -65,14 +67,29 @@ class SamaApiClient(SamaApiClientCore):
             data (Optional[str], optional): The data (body) for the request. Defaults to None.
             url_data (Optional[str], optional): URL based data. Defaults to None.
             params (Optional[dict], optional): URL Parameters. Defaults to None.
+            headers (Optional[dict], optional): Additional headers. Defaults to None.
+            etag (Optional[str], optional): ETag for update and delete requests. Defaults to None.
             debug (bool, optional): Enable debug printing of information. Defaults to False.
-            log_access (bool, optional): Enable access logging. Defaults to False because it is very cyatty.
+            log_access (bool, optional): Enable access logging. Defaults to False because it is very chatty.
 
         Returns:
-            Optional[DomainObject]: _description_
+            Optional[DomainObject]: Domain object with the response data, or None if the request failed.
+            ETag is added to the DomainObject if it is present in the response headers.
+            ETag is used for update and delete requests.
         """
+        if etag is not None:
+            if headers is None:
+                headers = {}
+            headers["If-Match"] = etag
         resp: Optional[Response] = self.api_request(
-            endpoint_name, no_default_headers, data, url_data, params, debug, log_access
+            endpoint_name=endpoint_name,
+            no_default_headers=no_default_headers,
+            data=data,
+            url_data=url_data,
+            params=params,
+            headers=headers,
+            log_access=log_access,
+            debug=debug,
         )
         if resp is None:
             return None
