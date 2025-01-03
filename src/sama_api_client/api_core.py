@@ -488,7 +488,7 @@ class SamaApiClientCore:
         except HTTPError as e:
             ho = headers.copy()
             ho["Authorization"] = "Bearer <:This is was redacted by my l33t :):>"
-            msg = f"HTTP Error: {e}\nRequest: {method} {api_url}\nHeaders: {ho}\nData: {data}\nURL Data: {url_data}\nParams: {params}\nReason: {response.reason}"
+            msg = f"HTTP Error: {e}\nRequest: {method} {api_url}\nHeaders: {ho}\nData: {data}\nURL Data: {url_data}\nParams: {params}\nReason: {response.reason}\nDetails: {response.text}"
             self.logger.error(msg)
             if debug is True:
                 print(msg)
