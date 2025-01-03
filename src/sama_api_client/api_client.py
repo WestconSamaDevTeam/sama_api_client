@@ -93,7 +93,12 @@ class SamaApiClient(SamaApiClientCore):
         )
         if resp is None:
             return None
+        # Check for 204 status code, this is an OK response, but it has no data.
+        if resp.status_code == 204:
+            empty_result: DomainObject = DomainObject.Status204()
+            empty_result.ETag = resp.headers.get("ETag", None)
+            return empty_result
         result: DomainObject = DomainObject(**resp.json())
         if "ETag" in resp.headers:
-            result.ETag = resp.headers["ETag"]
+            result.ETag = resp.headers.get("ETag", None)
         return result

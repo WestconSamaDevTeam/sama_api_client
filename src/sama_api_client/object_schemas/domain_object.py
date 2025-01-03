@@ -140,3 +140,7 @@ class DomainObject(BaseModel):
     resultType: Optional[str] = None
     result: Optional[list["DomainObject"]] = None
     ETag: Optional[str] = None
+
+    @staticmethod
+    def Status204() -> "DomainObject":
+        return DomainObject(domainType="Status204", links=[], id="", ETag="")
