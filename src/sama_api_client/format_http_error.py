@@ -47,6 +47,7 @@ def print_http_error(http_error: HTTPError):
                 print(f"    {field}:")
                 for error in errors:
                     print(f"      - {error}")
+        print()
     except json.JSONDecodeError:
         print(f"Failed to parse error response. Raw text: {http_error.response.text}")
     except AttributeError:

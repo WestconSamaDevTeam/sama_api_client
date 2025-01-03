@@ -493,7 +493,8 @@ class SamaApiClientCore:
                 self.logger.info(f"Response Data: {response.text}")
             return response
         except HTTPError as e:
-            print_http_error(e)
+            if debug is True:
+                print_http_error(e)
             msg = format_http_error_for_logging(e)
             self.logger.error(msg)
             return None
