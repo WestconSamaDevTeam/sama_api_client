@@ -16,3 +16,8 @@ Added ETag property to the response object.
 Added etag argument to the client.request function.
 Added Status204 method to the domain object.
 Added check for response code 204 in the response object in the client.request function.
+
+## 2.0.0.alpha.7 (2025-01-08)
+
+Added "Accept": "application/json", to the default headers in the api_core.py module, api_core class.
+Added __REDACTED__ constant to the api_core.py module this is used to redact sensitive information in the logs.

@@ -34,4 +34,4 @@ pydantic = "=2.10.4"
 version = {attr = "sama_api_client.__about__.__VERSION__"}
 
 [tool.setuptools.package-data]
-"pkgname" = ["py.typed"]
+"pkgname" = ["py.typed", "api_endpoints.json"]

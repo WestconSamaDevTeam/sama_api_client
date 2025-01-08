@@ -88,6 +88,8 @@ __LOG_FORMAT__ = "%(asctime)s %(name)s %(levelname)s %(message)s"  # The log for
 __LOG_LEVEL__ = INFO  # The log level.
 __LOGGER_NAME__ = "sama_api_client"  # The logger name.
 
+__REDACTED__ = "<:This is was redacted for security reasons:>"
+
 # Define an API endpoint
 
 __API_VERSION_ENDPOINT__ = "version"  # The API endpoint to test the connection.
@@ -141,6 +143,7 @@ class SamaApiClientCore:
         self.headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self._get_token()}",
+            "Accept": "application/json",
         }
 
     # private functions
@@ -464,7 +467,7 @@ class SamaApiClientCore:
             if debug is True:
                 print(f"API Request: {method} {api_url}")
                 ho = out_headers.copy()
-                ho["Authorization"] = "Bearer <:This is was redacted by my l33t :):>"
+                ho["Authorization"] = f"Bearer {__REDACTED__}"
                 print(f"Headers: {ho}")
                 print(f"Data: {data}")
                 print(f"URL Data: {url_data}")
@@ -473,7 +476,7 @@ class SamaApiClientCore:
             if log_access:
                 self.logger.info(f"API Request: {method} {api_url}")
                 ho = out_headers.copy()
-                ho["Authorization"] = "Bearer <:This is was redacted by my l33t :):>"
+                ho["Authorization"] = f"Bearer {__REDACTED__}"
                 self.logger.info(f"Headers: {ho}")
                 self.logger.info(f"Data: {data}")
                 self.logger.info(f"URL Data: {url_data}")
