@@ -126,6 +126,8 @@ from typing import Optional
 # We need to keep this in mind that the domain object has this, and process it accordingly in the code.
 #
 
+from typing import Any
+
 
 class DomainObject(BaseModel):
     links: list[LinkObject]
@@ -133,10 +135,10 @@ class DomainObject(BaseModel):
     instanceId: Optional[str] = None
     domainType: str
     title: Optional[str] = None
-    members: Optional[dict] = None
+    members: Optional[dict[str, Any]] = None
     value: Optional[list["DomainObject"]] = None
     values: Optional[list["DomainObject"]] = None
-    extensions: Optional[dict] = None
+    extensions: Optional[dict[str, Any]] = None
     resultType: Optional[str] = None
     result: Optional[list["DomainObject"]] = None
     ETag: Optional[str] = None

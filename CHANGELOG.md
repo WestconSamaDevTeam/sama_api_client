@@ -21,3 +21,22 @@ Added check for response code 204 in the response object in the client.request f
 
 Added "Accept": "application/json", to the default headers in the api_core.py module, api_core class.
 Added __REDACTED__ constant to the api_core.py module this is used to redact sensitive information in the logs.
+
+## 2.0.0.alpha.8 (2025-01-16)
+
+Moved the _build_api_url function from the api_core.py module to the api_client.py module.
+Removed the site_id parameter from api_core class.
+Renamed SamaApiClientCore to RestApiClientCore, because it is the generic/core class that gets inherited to make it specific to SAMA.
+RestApiClientCore renamed server_url to api_url.
+Moved all the constants from the api_core.py module to the configuration.py module.
+Created typing stub for the RestApiClientCore class.
+Created typing stub for the SamaApiClient class.
+Created typing stub for the version_object class.
+Created typing stub for the domain_object class.
+Created typing stub for the link_object class.
+Moved api_endpoint.py module to the object_schemas directory.
+Created typing stub for the ApiEndpoint class.
+Updated SamaApiClient init function, path argument gets a default value of str(__API_DEFINITION_PATH__). This is the path to the API definition file. Which is a JSON file that contains the API endpoints and their schemas. The path is calculated from Path(__file__).parent / "api_definition.json", hence the requirement of the str() cast on the Path object because the init argument is a str.
+Created Sama API Client 2025.docx documentation.
+Fixed pyproject.toml file format to comply with the standards.
+Updated the README.md file with the new features and changes.

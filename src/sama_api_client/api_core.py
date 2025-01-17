@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Product:   SAMA API Client - API client Core
+# Product:   SAMA API Client - REST API client Core
 # Author:    Marco Caspers
 # Email:     SamaDevTeam@westcon.com
 # Date:      2024-12-31
@@ -27,9 +27,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-# SAMA API Client - Core API Functions
+# SAMA API Client - REST API client Core
 #
-# This module contains the core API functions for the SAMA API Client.
+# This module contains the API agnostic REST API client core class.
+#
+# The core class provides the basic functionality to communicate with a REST API.
+#
 
 # Import required modules
 
@@ -42,13 +45,10 @@ from logging import INFO
 from logging import StreamHandler
 from logging import Formatter
 from logging import getLogger
-from logging import DEBUG
-from logging import ERROR
-from logging import WARNING
 
 from dotenv import load_dotenv
 
-from typing import Optional, Literal
+from typing import Optional, Literal, Any
 
 from requests import Session
 from requests.exceptions import HTTPError
@@ -57,63 +57,41 @@ from requests.models import Response
 from urllib.parse import urlencode
 from urllib.parse import quote
 
-from sama_api_client.api_endpoint import APIEndpoint
+from sama_api_client.object_schemas.api_endpoint import APIEndpoint
 from sama_api_client.__about__ import __VERSION__
 from sama_api_client.format_http_error import print_http_error
 from sama_api_client.format_http_error import format_http_error_for_logging
 
-# Constants
+from sama_api_client.configuration import LOGGER_NAME
+from sama_api_client.configuration import LOG_LEVEL
+from sama_api_client.configuration import LOG_FORMAT
+from sama_api_client.configuration import ENV_FILE_NAME
+from sama_api_client.configuration import ENV_USER
+from sama_api_client.configuration import ENV_SECRET
+from sama_api_client.configuration import KEYRING_SERVICE
+from sama_api_client.configuration import KEYRING_USER
+from sama_api_client.configuration import KEYRING_SECRET
+from sama_api_client.configuration import REDACTED
+from sama_api_client.configuration import API_VERSION_ENDPOINT
+from sama_api_client.configuration import API_DEFINITION_PATH
 
-__BASE_API_URL__ = "/check_mk/api/1.0"  # The base URL for the Check Mk API, this version number is for Check Mk 2.1.0 and later.
-# NOTE: The base url is subject to change if the Check Mk API changes in version 2.4.0 or later.
-
-# Environment Variable Constants
-
-__ENV_FILE__ = ".env"  # The environment file name.
-
-# The environment variable for the Check Mk automation user.
-__ENV_USER__ = "SAMA_AUTOMATION_USER"
-# The environment variable for the Check Mk automation secret.
-__ENV_SECRET__ = "SAMA_AUTOMATION_SECRET"
-
-# KEYRING Constants
-
-__KEYRING_SERVICE__ = "sama_api_client"  # The keyring service name.
-__KEYRING_USER__ = "sama_automation_user"  # The keyring user name.
-__KEYRING_SECRET__ = "sama_automation_secret"  # The keyring secret name.
-
-# Logger constants
-
-__LOG_FORMAT__ = "%(asctime)s %(name)s %(levelname)s %(message)s"  # The log format.
-__LOG_LEVEL__ = INFO  # The log level.
-__LOGGER_NAME__ = "sama_api_client"  # The logger name.
-
-__REDACTED__ = "<:This is was redacted for security reasons:>"
-
-# Define an API endpoint
-
-__API_VERSION_ENDPOINT__ = "version"  # The API endpoint to test the connection.
-
-__API_ENDPOINT_DEFINITION_FILE__ = (
-    "api_endpoints.json"  # The API endpoint definition file.
-)
 
 # Define the API Core class
 
 
-class SamaApiClientCore:
+class RestApiClientCore:
     """
-    SAMA API Client Core is the base class for the SamaAPiClient class.
-    It provides all the core functions for the SAMA API Client to communicate with the Check Mk 2.x REST API.
 
-    This class contains the core functions for the SAMA API Client.
+    REST API Client Core is an API agnostic base class.
+    It provides all the functions for the an API Client to communicate with a REST API.
+    API endpoints can be added/registered using functions or loaded from a JSON file.
+
     """
 
     # Define the class constructor
     def __init__(
         self,
-        site_id: str,
-        server_url: str,
+        api_url: str,
         user: Optional[str] = None,
         secret: Optional[str] = None,
     ):
@@ -131,10 +109,10 @@ class SamaApiClientCore:
         # Set the class variables
         self.user: Optional[str] = user
         self.secret: Optional[str] = secret
-        self.site_id: str = site_id
-        self.api_url: str = self._build_api_url(server_url, site_id)
+        self.api_url: str = api_url
         self.session: Session = Session()
         self.endpoints: list[APIEndpoint] = []
+        self._connect_endpoint: str = API_VERSION_ENDPOINT
 
         # Set the class logger
         self.logger: Logger = self._init_logger()
@@ -146,34 +124,43 @@ class SamaApiClientCore:
             "Accept": "application/json",
         }
 
+    # properties
+
+    @property
+    def connection_endpoint(self) -> str:
+        """
+
+        This property returns the connection endpoint.
+
+        :return: The connection endpoint.
+
+        """
+        return self._connect_endpoint
+
+    @connection_endpoint.setter
+    def connection_endpoint(self, value: str) -> None:
+        """
+
+        This property sets the connection endpoint.
+
+        :param value: The connection endpoint.
+
+        """
+        self._connect_endpoint = value
+
     # private functions
-
-    def _build_api_url(self, server_url: str, site_id: str) -> str:
-        """
-
-        This method builds the API URL.
-
-        :param server_url: The server URL.
-        :param site_id: The site ID.
-
-        :return: The API URL.
-
-        """
-
-        api_url = f"{server_url}/{site_id}{__BASE_API_URL__}"
-        return api_url
 
     def _init_logger(self) -> Logger:
         """
         Initialize the logger.
         """
-        logger: Logger = getLogger(__LOGGER_NAME__)
-        logger.setLevel(__LOG_LEVEL__)
+        logger: Logger = getLogger(LOGGER_NAME)
+        logger.setLevel(LOG_LEVEL)
         logger.propagate = False
         logger.handlers.clear()
         handler: StreamHandler = StreamHandler()
-        handler.setLevel(__LOG_LEVEL__)
-        formatter: Formatter = Formatter(__LOG_FORMAT__)
+        handler.setLevel(LOG_LEVEL)
+        formatter: Formatter = Formatter(LOG_FORMAT)
         handler.setFormatter(formatter)
         return logger
 
@@ -187,13 +174,13 @@ class SamaApiClientCore:
         """
         # Load the environment variables from the .env file if it exists, this ensures that
         # it takes precedence over the system environment variables.
-        load_dotenv(__ENV_FILE__)
+        load_dotenv(ENV_FILE_NAME)
 
         # Get the token from the environment variables
-        user: Optional[str] = os.getenv(__ENV_USER__)
+        user: Optional[str] = os.getenv(ENV_USER)
         if user is None:
             return None
-        secret: Optional[str] = os.getenv(__ENV_SECRET__)
+        secret: Optional[str] = os.getenv(ENV_SECRET)
         if secret is None:
             return None
         return f"{user} {secret}"
@@ -208,14 +195,10 @@ class SamaApiClientCore:
         """
 
         # Get the token from the keyring
-        user: Optional[str] = keyring.get_password(
-            __KEYRING_SERVICE__, __KEYRING_USER__
-        )
+        user: Optional[str] = keyring.get_password(KEYRING_SERVICE, KEYRING_USER)
         if user is None:
             return None
-        secret: Optional[str] = keyring.get_password(
-            __KEYRING_SERVICE__, __KEYRING_SECRET__
-        )
+        secret: Optional[str] = keyring.get_password(KEYRING_SERVICE, KEYRING_SECRET)
         if secret is None:
             return None
         return f"{user} {secret}"
@@ -253,7 +236,7 @@ class SamaApiClientCore:
         self,
         endpoint_path: str,
         url_data: Optional[str] = None,
-        params: Optional[dict] = None,
+        params: Optional[dict[str, Any]] = None,
     ) -> str:
         """
 
@@ -308,7 +291,7 @@ class SamaApiClientCore:
         # Return the version
         return __VERSION__
 
-    def load_endpoints(self, path: str = __API_ENDPOINT_DEFINITION_FILE__) -> bool:
+    def load_endpoints(self, path: str = str(API_DEFINITION_PATH)) -> bool:
         """
 
         This method loads the API endpoints from the API endpoint definition file.
@@ -340,7 +323,7 @@ class SamaApiClientCore:
         endpoint_name: str,
         endpoint_path: str,
         method: str,
-        endpoint_headers: Optional[dict],
+        endpoint_headers: Optional[dict[str, str]],
     ) -> None:
         """
 
@@ -392,7 +375,7 @@ class SamaApiClientCore:
         # Test the connection to the Check Mk API
         try:
             response: Response = self.session.get(
-                f"{self.api_url}/{__API_VERSION_ENDPOINT__}",
+                f"{self.api_url}/{self._connect_endpoint}",
                 headers=self.headers,
             )
             response.raise_for_status()
@@ -412,7 +395,8 @@ class SamaApiClientCore:
         """
 
         # Close the session
-        self.session.close()
+        if self.session is not None:
+            self.session.close()
 
     def api_request(
         self,
@@ -467,7 +451,7 @@ class SamaApiClientCore:
             if debug is True:
                 print(f"API Request: {method} {api_url}")
                 ho = out_headers.copy()
-                ho["Authorization"] = f"Bearer {__REDACTED__}"
+                ho["Authorization"] = f"Bearer {REDACTED}"
                 print(f"Headers: {ho}")
                 print(f"Data: {data}")
                 print(f"URL Data: {url_data}")
@@ -476,7 +460,7 @@ class SamaApiClientCore:
             if log_access:
                 self.logger.info(f"API Request: {method} {api_url}")
                 ho = out_headers.copy()
-                ho["Authorization"] = f"Bearer {__REDACTED__}"
+                ho["Authorization"] = f"Bearer {REDACTED}"
                 self.logger.info(f"Headers: {ho}")
                 self.logger.info(f"Data: {data}")
                 self.logger.info(f"URL Data: {url_data}")
@@ -507,7 +491,7 @@ class SamaApiClientCore:
 
     # Context manager
 
-    def __enter__(self) -> Optional["SamaApiClientCore"]:
+    def __enter__(self) -> Optional["RestApiClientCore"]:
         try:
             self.connect()
             return self
@@ -526,7 +510,7 @@ class SamaApiClientCore:
     # String representation
 
     def __str__(self) -> str:
-        return f"SamaApiClientCore(site_id={self.site_id}, api_url={self.api_url})"
+        return f"RestApiClientCore(api_url={self.api_url})"
 
     def __repr__(self) -> str:
         return self.__str__()

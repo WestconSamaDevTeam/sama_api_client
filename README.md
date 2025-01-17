@@ -6,9 +6,9 @@
   - [Table of contents](#table-of-contents)
   - [Introduction](#introduction)
   - [Check Mk Rest API Authentication](#check-mk-rest-api-authentication)
-  - [SAMA API Client core - API class initialization](#sama-api-client-core---api-class-initialization)
+  - [REST API Client core - API class initialization](#rest-api-client-core---api-class-initialization)
   - [SAMA API Client core - logging](#sama-api-client-core---logging)
-  - [SAMA API Client core - API endpoints](#sama-api-client-core---api-endpoints)
+  - [REST API Client core - API endpoints](#rest-api-client-core---api-endpoints)
   - [SAMA API Client core - API requests](#sama-api-client-core---api-requests)
   - [SAMA API Client - SamaApiClient](#sama-api-client---samaapiclient)
   - [Demos](#demos)
@@ -24,8 +24,9 @@ This library is built on top of the requests library, which is a popular library
 
 It is a rewrite of the CheckmkAPIClient that used the RestApiClientCore for communicating with the Check Mk API.
 The SamaApiClient is a single library that implements both the RestApiClientCore and the CheckmkAPIClient.
-The RestApiClientCore is now the SamaApiClientCore and the CheckmkAPIClient is now the SamaApiClient.
-Where RestApiClientCore was used as a client inside the CheckmkAPIClient, the SamaApiClientCore is used as the base class of the SamaApiClient.
+The the CheckmkAPIClient is renamed to SamaApiClient.
+Where RestApiClientCore is used as the base class of the SamaApiClient.
+It was refactored to become API agnostic. Its only function is to handle the communication with the REST API of a REST API server.
 
 It is a known fact that Check Mk 2.x API is going to change coming version 2.3 and later of Check Mk , where in version 2.4
 the previous versions of the API are going to be removed.
@@ -35,11 +36,11 @@ The CheckmkAPIClient implemented all supported API endpoints in the class as fun
 This library is designed to be more flexible and to allow the user to define the API endpoints separately.
 In fact, it can even load a json file with the API endpoints without requiring any additional code.
 
-The basic functionality of the SAMA API client is provided by the SamaApiClientCore class.
+The basic functionality of the SAMA API client is provided by the RestApiClientCore class.
 This core class handles the communication with the REST API of the Check Mk server.
 It is so flexible that it can be used even on its own as a generic API client for any REST API.
 
-The SamaApiClient class inherits from the SamaApiClientCore class and will provide additional
+The SamaApiClient class inherits from the RestApiClientCore class and will provide additional
 functionality that is specific to SAMA/Check Mk.
 
 ## Check Mk Rest API Authentication
@@ -69,7 +70,7 @@ curl -H "Authorization: Bearer automation your_automation_secret" -H "Accept: ap
 Remember to replace 'your_automation_secret', 'your_checkmk_server', 'your_site', and the API endpoint with your specific values.
 It's important to note that Bearer authentication is the recommended method for scripts and takes precedence over other authentication methods. Ensure that you use HTTPS for secure transmission of credentials.
 
-## SAMA API Client core - API class initialization
+## REST API Client core - API class initialization
 
 From the previous chapter we learned how to authenticate with the Check Mk API, now we set up our SAMA API client class initialization with some the key components needed for this.
 
@@ -101,10 +102,10 @@ class init > keyring > .env file > environment variables.
 The SAMA API client class initialization is as follows (provided you use the environment variables or keyring to store the credentials):
 
 ```python
-from sama_api_client import SamaApiClientCore
+from sama_api_client import RestApiClientCore
 
-with SamaApiClientCore(site_id='your_site_id', server_url='https://your_checkmk_server') as sama_api_client:
-    if sama_api_client is None:
+with RestApiClientCore(api_url='https://your_checkmk_server/site_id/check_mk/api/1.0', username='your_username', secret='your_secret') as client:
+    if client is None:
         print('Could not authenticate with the Check Mk API')
         exit(1)
     # Do something with the client
@@ -118,14 +119,14 @@ For testing purposes this is ideal, but it may not be the best way to handle the
 To this end the connect and close functions are provided in the SAMA API client core:
 
 ```python
-from sama_api_client import SamaApiClientCore
+from sama_api_client import RestApiClientCore
 
-sama_api_client = SamaApiClientCore(site_id='your_site_id', server_url='https://your_checkmk_server')
-if sama_api_client.connect() is False:
+client = RestApiClientCore(api_url='https://your_checkmk_server/site_id/check_mk/api/1.0')
+if client.connect() is False:
     print('Could not authenticate with the Check Mk API')
     exit(1)
 # Do something with the client
-sama_api_client.close()
+client.close()
 ```
 
 The connect function calls the API endpoint to authenticate with the Check Mk API and get the version information.
@@ -152,28 +153,28 @@ To change this use the following code:
 ```python
 import logging
 
-from sama_api_client import SamaApiClientCore
+from sama_api_client import RestApiClientCore
 
 logging.basicConfig(filename='sama_api_client.log', level=logging.INFO)
-sama_api_client = SamaApiClientCore(site_id='your_site_id', server_url='https://your_checkmk_server')
-if sama_api_client.connect() is False:
+client = RestApiClientCore(api_url='https://your_checkmk_server/site_id/check_mk/api/1.0')
+if client.connect() is False:
     print('Could not authenticate with the Check Mk API')
     exit(1)
 # Do something with the client
-sama_api_client.close()
+client.close()
 ```
 
 The logging.basicConfig function is used to set up the logging to log to a file.
 The filename parameter is used to specify the name of the log file.
 The level parameter is used to specify the log level.
 
-## SAMA API Client core - API endpoints
+## REST API Client core - API endpoints
 
-The SAMA API client core provides a simple way to interact with the Check Mk API.
+The REST API client core provides a simple way to interact with any REST API.
 The Check Mk API is a RESTful API that provides a way to interact with the Check Mk server.
 For more details on the Check Mk API see the Check Mk API documentation that is accessible through the Check Mk web interface.
 
-The SAMA API client core provides a way to interact with the Check Mk API by defining the API endpoints through a registry function.
+The REST API client core provides a way to interact with any REST API by defining the API endpoints through a registry function.
 
 An API endpoint consists of the following components:
 
@@ -189,56 +190,48 @@ The APIEndpoint object is a simple object that contains the name, the path, the 
 It can be created as follows:
 
 ```python
-from sama_api_client import APIEndpoint
+from sama_api_client.object_schemas import APIEndpoint
 
 api_endpoint = APIEndpoint(name='Version', path='version', method='GET', headers={})
 ```
 
 While the headers are optional, it is good practice to define them as an empty dictionary.
 
-The SamaApiClientCore class allows you to add individual API endpoints to the API registry using the add_endpoint function.
+The RestApiClientCore class allows you to add individual API endpoints to the API registry using the add_endpoint function.
 
 The add_endpoint function takes an APIEndpoint object as a parameter and adds it to the API registry.
 
 ```python
-from sama_api_client import SamaApiClientCore, APIEndpoint
+from sama_api_client import RestApiClientCore
+from sama_api_client.object_schemas import APIEndpoint
 
 api_endpoint = APIEndpoint(name='Version', path='version', method='GET', headers={})
 
-sama_api_client = SamaApiClientCore(site_id='your_site_id', server_url='https://your_checkmk_server')
-sama_api_client.add_endpoint(api_endpoint)
-if sama_api_client.connect() is False:
-    print('Could not authenticate with the Check Mk API')
-    exit(1)
-# Do something with the client
-sama_api_client.close()
+client = RestApiClientCore(api_url='https://your_checkmk_server/site_id/check_mk/api/1.0')
+client.add_endpoint(api_endpoint)
 ```
 
 While this method works for adding individual API endpoints to the API registry, it is not the most efficient way to add multiple API endpoints to the API endpoint registry.
 
-For this reason the SamaApiClientCore class provides a way to register individual API endpoints using the register_endpoints function.
+For this reason the RestApiClientCore class provides a way to register individual API endpoints using the register_endpoints function.
 This takes care of initializing the APIEndpoint objects and adding them to the API registry.
 
 The register_endpoint function takes the same parameters as the APIEndpoint object.
 
 ```python
-from sama_api_client import SamaApiClientCore
+from sama_api_client import RestApiClientCore
 
-sama_api_client = SamaApiClientCore(site_id='your_site_id', server_url='https://your_checkmk_server')
-sama_api_client.register_endpoint(name='Version', path='version', method='GET', headers={})
-sama_api_client.register_endpoint(name='Hosts', path='hosts', method='GET', headers={})
+client = RestApiClientCore(api_url='https://your_checkmk_server/site_id/check_mk/api/1.0')
 
-if sama_api_client.connect() is False:
-    print('Could not authenticate with the Check Mk API')
-    exit(1)
-# Do something with the client
-sama_api_client.close()
+client.register_endpoint(name='Version', path='version', method='GET', headers={})
+client.register_endpoint(name='Hosts', path='hosts', method='GET', headers={})
+
 ```
 
 This reduces the amount of code needed to add multiple API endpoints to the API registry.
 However, it is still not the most efficient way to add multiple API endpoints to the API registry in case there are many API endpoints to add.
 
-For this reason the SamaApiClientCore class provides a way to register multiple API endpoints using a json file.
+For this reason the RestApiClientCore class provides a way to register multiple API endpoints using a json file.
 The format of the json file needs to match the format of the APIEndpoint object.
 It should look like this:
 
@@ -262,14 +255,11 @@ It should look like this:
 The json file can be loaded using the load_endpoints function.
 
 ```python
-from sama_api_client import SamaApiClientCore
+from sama_api_client import RestApiClientCore
 
-sama_api_client = SamaApiClientCore(site_id='your_site_id', server_url='https://your_checkmk_server')
-if sama_api_client.load_endpoints('api_endpoints.json') is False:
+client = RestApiClientCore(api_url='https://your_checkmk_server/site_id/check_mk/api/1.0')
+if client.load_endpoints('api_endpoints.json') is False:
     print('Could not load the API endpoints')
-    exit(1)
-if sama_api_client.connect() is False:
-    print('Could not authenticate with the Check Mk API')
     exit(1)
 ```
 
@@ -288,14 +278,14 @@ If any error occurs, the function will return None. Any errors that happened wil
 The following code demonstrates how to make an API request to the Check Mk API using the api_request function:
 
 ```python
-from sama_api_client import SamaApiClientCore
+from sama_api_client import RestApiClientCore
 
-sama_api_client = SamaApiClientCore(site_id='your_site_id', server_url='https://your_checkmk_server')
-sama_api_client.register_endpoint(name='Version', path='version', method='GET', headers={})
-if sama_api_client.connect() is False:
+client = RestApiClientCore(api_url='https://your_checkmk_server/site_id/check_mk/api/1.0')
+client.register_endpoint(name='Version', path='version', method='GET', headers={})
+if client.connect() is False:
     print('Could not authenticate with the Check Mk API')
     exit(1)
-response = sama_api_client.api_request('Version')
+response = client.api_request('Version')
 if response is None:
     print('Could not make the API request')
     exit(1)
@@ -325,10 +315,10 @@ It should look similar to this:
 
 ## SAMA API Client - SamaApiClient
 
-The SamaApiClient class is a subclass of the SamaApiClientCore class.
+The SamaApiClient class is a subclass of the RestApiClientCore class.
 It provides additional functionality that is specific to SAMA/Check Mk.
 
-While you can use the functions of the SamaApiClientCore class to interact with the Check Mk API even if you instantiate the SamaApiClient class, the SamaApiClient class provides a translation layer that makes it easier to interact with the Check Mk API.
+While you can use the functions of the RestApiClientCore class to interact with the Check Mk API even if you instantiate the SamaApiClient class, the SamaApiClient class provides a translation layer that makes it easier to interact with the Check Mk API.
 
 The Check Mk REST API returns (on most endpoints) a json object that is named the Domain object.
 The Domain object is a dictionary that contains the data of the API endpoint.
@@ -407,6 +397,6 @@ It is designed to be easy to use and easy to extend.
 
 The library is built on top of the requests library, which is a popular library for making HTTP requests in Python.
 It is also a combination of two older projects, the Check Mk API client and the Rest API client.
-Where the Rest API Client is now the SamaApiClientCore and the Check Mk API client is the SamaApiClient.
+Where the Rest API Client is now the RestApiClientCore and the Check Mk API client is the SamaApiClient.
 
 Where the older projects did a more exact implementation and had a function for each supported API endpoint, the new SAMA API client is more flexible and allows the user to define the API endpoints in a separate file, and call each endpoint by name.

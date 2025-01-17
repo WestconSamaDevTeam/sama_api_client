@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Product:   SAMA API Client - API Endpoint
+# Product:   SAMA API Client - API Endpoint object schema
 # Author:    Marco Caspers
 # Email:     SamaDevTeam@westcon.com
 # Date:      2024-12-31
@@ -54,7 +54,7 @@ class APIEndpoint:
         name: str,
         path: str,
         method: str,
-        headers: Optional[dict] = None,
+        headers: Optional[dict[str, str]] = None,
     ):
         """
         Initialize the API endpoint class.
@@ -67,7 +67,7 @@ class APIEndpoint:
         self.name: str = name
         self.path: str = path
         self.method: str = method
-        self.headers: Optional[dict] = headers
+        self.headers: Optional[dict[str, str]] = headers
 
     def __str__(self) -> str:
         """

@@ -31,7 +31,7 @@
 
 # Import required modules
 
-from sama_api_client.api_core import SamaApiClientCore  # type: ignore
+from sama_api_client.api_core import RestApiClientCore  # type: ignore
 
 from requests.models import Response
 
@@ -42,11 +42,10 @@ from rich import print
 
 def main() -> None:
 
-    client: SamaApiClientCore = SamaApiClientCore(
-        site_id="samadev_test", server_url="http://localhost:1024"
+    client: RestApiClientCore = RestApiClientCore(
+        api_url="http://localhost:1024/samadev_test/check_mk/api/v1"
     )
-    path: str = "../src/sama_api_client/api_endpoints.json"
-    if client.load_endpoints(path) is False:
+    if client.load_endpoints() is False:
         print("Could not load the API endpoints")
         exit(1)
     if client.connect() is False:

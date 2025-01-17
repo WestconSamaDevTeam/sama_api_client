@@ -36,12 +36,11 @@ from sama_api_client.api_client import SamaApiClient
 from rich import print
 
 
-def main() -> None:
-
+def basic_test() -> None:
     client: SamaApiClient = SamaApiClient(
         site_id="samadev_test",
         server_url="http://localhost:1024",
-        path="../src/sama_api_client/api_endpoints.json",
+        path="api_endpoints.json",
     )
     sama_version_information = client.get_version_information()
     all_folders = client.request("GetAllFolders")
@@ -56,6 +55,47 @@ def main() -> None:
 
     print(sama_version_information)
     print(all_folders)
+
+
+def delete_test() -> None:
+    raise Exception("Do not call this, it is a dummy function for syntax demonstration")
+    client: SamaApiClient = SamaApiClient(
+        site_id="test",
+        server_url="http://localhost",
+    )
+    client.connect()
+    folder = client.request("GetFolder", url_data="test_folder")
+    response = client.request("DeleteFolder", url_data="test_folder", etag=folder.Etag)
+    client.close()
+    print(response)
+
+
+def context_manager_test() -> None:
+    with SamaApiClient(
+        site_id="test",
+        server_url="http://localhost",
+    ) as client:
+        if client is None:
+            print("Could not create the client")
+            exit(1)
+        sama_version_information = client.get_version_information()
+        all_folders = client.request("GetAllFolders")
+        if sama_version_information is None:
+            print("Could not retrieve the version information")
+            exit(1)
+
+        if all_folders is None:
+            print("Could not retrieve the folders")
+            exit(1)
+
+        print(sama_version_information)
+        print(all_folders)
+
+
+def main() -> None:
+    # Remove the comment to run the basic test
+    # basic_test()
+    context_manager_test()
 
 
 if __name__ == "__main__":

@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 #
-# Product:   SAMA API Client - About
+# Product:   SAMA API Client - ApiEndpoint object schema - type stub
 # Author:    Marco Caspers
 # Email:     SamaDevTeam@westcon.com
-# Date:      2024-12-31
+# Date:      2025-01-16
 #
 # MIT License
 #
-# Copyright (c) 2024-present Westcon-Comstor
+# Copyright (c) 2025-present Westcon-Comstor
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,11 +27,20 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-__VERSION__ = "2.0.0.alpha.8"
-__AUTHOR__ = "Marco Caspers"
-__AUTHOR_EMAIL__ = "samadevteam@westcon.com"
-__PRODUCT__ = "SAMA API Client"
-__PRODUCT_DESCRIPTION__ = "SAMA API Client"
-__COPYRIGHT__ = "2024-present Westcon-Comstor"
-__LICENSE__ = "MIT License"
-__DATE__ = "2024-12-31"
+from typing import Optional
+
+class APIEndpoint:
+    name: str
+    path: str
+    method: str
+    headers: Optional[dict[str, str]]
+
+    def __init__(
+        self,
+        name: str,
+        path: str,
+        method: str,
+        headers: Optional[dict[str, str]] = None,
+    ) -> None: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...

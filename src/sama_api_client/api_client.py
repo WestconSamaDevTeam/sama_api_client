@@ -27,18 +27,42 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from typing import Optional
-from sama_api_client.api_core import SamaApiClientCore
+from typing import Optional, Literal, final
+from sama_api_client.api_core import RestApiClientCore
 from requests.models import Response
 
 from sama_api_client.object_schemas.domain_object import DomainObject
 from sama_api_client.object_schemas.version_object import VersionObject
 
+from sama_api_client.configuration import API_BASE_URL
+from sama_api_client.configuration import API_DEFINITION_PATH
 
-class SamaApiClient(SamaApiClientCore):
-    def __init__(self, site_id: str, server_url: str, path: str) -> None:
-        super().__init__(site_id=site_id, server_url=server_url)
-        self.load_endpoints(path)
+
+@final
+class SamaApiClient(RestApiClientCore):
+    def __init__(
+        self, site_id: str, server_url: str, path: str = str(API_DEFINITION_PATH)
+    ) -> None:
+        self.path: str = path
+        self.site_id: str = site_id
+        self.server_url: str = server_url
+        super().__init__(api_url=self._build_api_url(self.server_url, self.site_id))
+        self.load_endpoints(self.path)
+
+    def _build_api_url(self, server_url: str, site_id: str) -> str:
+        """
+
+        This method builds the API URL.
+
+        :param server_url: The server URL.
+        :param site_id: The site ID.
+
+        :return: The API URL.
+
+        """
+
+        api_url = f"{server_url}/{site_id}{API_BASE_URL}"
+        return api_url
 
     def get_version_information(self) -> Optional[VersionObject]:
         resp: Optional[Response] = self.api_request("Version")
@@ -102,3 +126,21 @@ class SamaApiClient(SamaApiClientCore):
         if "ETag" in resp.headers:
             result.ETag = resp.headers.get("ETag", None)
         return result
+
+    # Context manager methods
+
+    def __enter__(self) -> Optional["SamaApiClient"]:
+        result = super().__enter__()
+        return self if result is not None else None
+
+    def __exit__(self, exc_type, exc_value, traceback) -> Literal[False]:
+        super().__exit__(exc_type, exc_value, traceback)
+        return False
+
+    # representation methods
+
+    def __str__(self) -> str:
+        return f"SamaApiClient: {self.api_url}"
+
+    def __repr__(self) -> str:
+        return f"SamaApiClient(site_id={self.site_id}, server_url={self.server_url}, path={self.path})"

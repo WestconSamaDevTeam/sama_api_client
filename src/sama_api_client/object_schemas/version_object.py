@@ -55,7 +55,7 @@ from pydantic import BaseModel
 class VersionObject(BaseModel):
     site: str
     group: str
-    rest_api: dict
-    versions: dict
+    rest_api: dict[str, str]
+    versions: dict[str, str]
     edition: str
     demo: bool

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Product:   SAMA API Client - HTTPError print function
+# Product:   SAMA API Client - HTTPError print & format functions
 # Author:    Marco Caspers
 # Email:     SamaDevTeam@westcon.com
 # Date:      2025-01-03

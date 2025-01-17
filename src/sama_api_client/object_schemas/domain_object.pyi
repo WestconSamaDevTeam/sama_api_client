@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 #
-# Product:   SAMA API Client - About
+# Product:   SAMA API Client - Domain object schema - type stub
 # Author:    Marco Caspers
 # Email:     SamaDevTeam@westcon.com
-# Date:      2024-12-31
+# Date:      2025-01-16
 #
 # MIT License
 #
-# Copyright (c) 2024-present Westcon-Comstor
+# Copyright (c) 2025-present Westcon-Comstor
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,11 +27,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-__VERSION__ = "2.0.0.alpha.8"
-__AUTHOR__ = "Marco Caspers"
-__AUTHOR_EMAIL__ = "samadevteam@westcon.com"
-__PRODUCT__ = "SAMA API Client"
-__PRODUCT_DESCRIPTION__ = "SAMA API Client"
-__COPYRIGHT__ = "2024-present Westcon-Comstor"
-__LICENSE__ = "MIT License"
-__DATE__ = "2024-12-31"
+from typing import Optional, List, Dict, Any
+from pydantic import BaseModel
+from sama_api_client.object_schemas.link_object import LinkObject
+
+class DomainObject(BaseModel):
+    links: List[LinkObject]
+    id: str
+    instanceId: Optional[str]
+    domainType: str
+    title: Optional[str]
+    members: Optional[Dict[str, Any]]
+    value: Optional[List["DomainObject"]]
+    values: Optional[List["DomainObject"]]
+    extensions: Optional[Dict[str, Any]]
+    resultType: Optional[str]
+    result: Optional[List["DomainObject"]]
+    ETag: Optional[str]
+
+    @staticmethod
+    def Status204() -> "DomainObject": ...
