@@ -76,3 +76,8 @@ API_BASE_URL = "/check_mk/api/1.0"  # The base URL for the Check Mk API, this ve
 # Redacted string
 
 REDACTED = "<:This is redacted for security reasons:>"
+
+# Enable the API call on connect.
+# This is to test the connection to the API
+# when the client is created.
+ENABLE_API_CALL_ON_CONNECT = False

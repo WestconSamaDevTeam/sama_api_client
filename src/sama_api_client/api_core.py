@@ -74,7 +74,7 @@ from sama_api_client.configuration import KEYRING_SECRET
 from sama_api_client.configuration import REDACTED
 from sama_api_client.configuration import API_VERSION_ENDPOINT
 from sama_api_client.configuration import API_DEFINITION_PATH
-
+from sama_api_client.configuration import ENABLE_API_CALL_ON_CONNECT
 
 # Define the API Core class
 
@@ -374,11 +374,12 @@ class RestApiClientCore:
 
         # Test the connection to the Check Mk API
         try:
-            response: Response = self.session.get(
-                f"{self.api_url}/{self._connect_endpoint}",
-                headers=self.headers,
-            )
-            response.raise_for_status()
+            if ENABLE_API_CALL_ON_CONNECT is True:
+                response: Response = self.session.get(
+                    f"{self.api_url}/{self._connect_endpoint}",
+                    headers=self.headers,
+                )
+                response.raise_for_status()
             return True
         except HTTPError as e:
             self.logger.error(f"HTTPError: {e}")

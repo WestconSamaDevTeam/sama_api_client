@@ -40,3 +40,9 @@ Updated SamaApiClient init function, path argument gets a default value of str(_
 Created Sama API Client 2025.docx documentation.
 Fixed pyproject.toml file format to comply with the standards.
 Updated the README.md file with the new features and changes.
+
+## 2.0.0.alpha.9 (2025-01-17)
+
+Added the ENABLE_API_CALL_ON_CONNECT constant to the configuration.py module. This is used to enable or disable the API call on connect. The default value is False.
+This will speed up the client initialization process, by not making an API call on connect.
+Added the ENABLE_API_CALL_ON_CONNECT argument to the RestApiClient init function. This is used to enable or disable the API call on connect.
