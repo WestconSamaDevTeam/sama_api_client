@@ -46,3 +46,8 @@ Updated the README.md file with the new features and changes.
 Added the ENABLE_API_CALL_ON_CONNECT constant to the configuration.py module. This is used to enable or disable the API call on connect. The default value is False.
 This will speed up the client initialization process, by not making an API call on connect.
 Added the ENABLE_API_CALL_ON_CONNECT argument to the RestApiClient init function. This is used to enable or disable the API call on connect.
+
+## 2.0.0.beta.1 (2025-02-03)
+
+Fixed an issue with _get_keyring_token in the core, it could raise an exception if the keyring module was not installed or the proper credentials weren't set inside the keyring.
+Now it returns None if the keyring module is not installed or no credentials were found.

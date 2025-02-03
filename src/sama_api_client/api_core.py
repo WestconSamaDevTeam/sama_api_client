@@ -195,13 +195,19 @@ class RestApiClientCore:
         """
 
         # Get the token from the keyring
-        user: Optional[str] = keyring.get_password(KEYRING_SERVICE, KEYRING_USER)
-        if user is None:
+        try:
+            user: Optional[str] = keyring.get_password(KEYRING_SERVICE, KEYRING_USER)
+            if user is None:
+                return None
+            secret: Optional[str] = keyring.get_password(
+                KEYRING_SERVICE, KEYRING_SECRET
+            )
+            if secret is None:
+                return None
+            return f"{user} {secret}"
+        except Exception as e:
+            self.logger.error(f"Exception: {e}")
             return None
-        secret: Optional[str] = keyring.get_password(KEYRING_SERVICE, KEYRING_SECRET)
-        if secret is None:
-            return None
-        return f"{user} {secret}"
 
     def _get_token(self) -> Optional[str]:
         """

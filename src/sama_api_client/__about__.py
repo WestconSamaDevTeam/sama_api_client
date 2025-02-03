@@ -27,7 +27,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-__VERSION__ = "2.0.0.alpha.9"
+__VERSION__ = "2.0.0.beta.1"
 __AUTHOR__ = "Marco Caspers"
 __AUTHOR_EMAIL__ = "samadevteam@westcon.com"
 __PRODUCT__ = "SAMA API Client"
